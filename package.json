@@ -1,0 +1,16 @@
+{
+  "name": "wsapi",
+  "version": "0.0.0",
+  "description": "test of xhr vs websocket",
+  "dependencies": {
+    "express": "3.5.1",
+    "ws": "0.4.31"
+  },
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "BSD"
+}
