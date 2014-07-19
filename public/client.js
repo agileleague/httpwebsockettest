@@ -1,4 +1,6 @@
 $(function () {
+  var runningTest;
+
   var WebSocketTest = function (count, reporter) {
     this.count = count;
     this._reporter = reporter;
@@ -54,6 +56,7 @@ $(function () {
     this.endTime = new Date();
     this._closeConnection();
     this._reporter.report(this);
+    runningTest = null;
   }
 
   var Reporter = function Reporter(el) {
@@ -119,15 +122,21 @@ $(function () {
   HttpTest.prototype._close = function () {
     this.endTime = new Date();
     this._reporter.report(this);
+    runningTest = null;
   }
 
   $('#test-panel').submit(function (e) {
     e.preventDefault();
+    if (runningTest) {
+      return alert("A test was started at " + runningTest.startTime + ".  Please wait for it to complete before starting another.");
+    }
     var driver = $('#test-type').val() == "Web Socket" ? WebSocketTest : HttpTest;
     var count = parseInt($('#count').val());
     if (!count) {
       return alert('You must specify the number of concurrent requests in count.');
     }
-    new driver(count, new Reporter($('#results'))).perform();
+    var test = new driver(count, new Reporter($('#results')));
+    test.perform();
+    runningTest = test;
   });
 });
