@@ -121,12 +121,13 @@ $(function () {
     this._reporter.report(this);
   }
 
-  $('#run-test').click(function () {
+  $('#test-panel').submit(function (e) {
     var driver = $('#test-type').val() == "Web Socket" ? WebSocketTest : HttpTest;
     var count = parseInt($('#count').val());
     if (!count) {
       return alert('You must specify the number of concurrent requests in count.');
     }
     new driver(count, new Reporter($('#results'))).perform();
+    e.preventDefault();
   });
 });

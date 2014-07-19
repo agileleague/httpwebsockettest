@@ -4,17 +4,23 @@
   </head>
   <body>
     <h1>HTTP and WebSockets Speed Tester</h1>
-    <div id="test-panel">
-      <label> Test Type
-        <select id="test-type">
-          <option>HTTP</option>
-          <option>Web Socket</option>
-        </select>
-      </label>
-      <label> Count
-        <input id="count" type="text"></input>
-      </label>
-      <button id="run-test" type="button">Run test</button>
+    <p>
+      Select the test type and input the count of concurrent requests to make in that test.<br>
+      <em>HTTP make take a few seconds to complete especially with a high count.</em>
+    </p>
+    <div>
+      <form id="test-panel">
+        <label> Test Type
+          <select id="test-type">
+            <option>HTTP</option>
+            <option>Web Socket</option>
+          </select>
+        </label>
+        <label> Count
+          <input id="count" type="text"></input>
+        </label>
+        <button id="run-test" type="submit">Run test</button>
+      </form>
     </div>
     <div id="results"></div>
     <script src="./jquery-1.11.1.min.js"></script>
