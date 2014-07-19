@@ -5,8 +5,10 @@ var WebSocketServer = require('ws').Server;
 
 var port = process.env.PORT || 3000;
 
-var buildResponse = function () {
-  return JSON.stringify({now: new Date()});
+var buildResponse = function (properties) {
+  properties = properties || {};
+  properties.now = new Date();
+  return JSON.stringify(properties);
 }
 
 var app = express();
@@ -25,6 +27,6 @@ var server = http.createServer(app).listen(port);
 var wss = new WebSocketServer({server: server});
 wss.on('connection', function(ws) {
   ws.on('message', function(message) {
-    ws.send(buildResponse());
+    ws.send(buildResponse({id: message}));
   });
 });
