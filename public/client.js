@@ -122,12 +122,12 @@ $(function () {
   }
 
   $('#test-panel').submit(function (e) {
+    e.preventDefault();
     var driver = $('#test-type').val() == "Web Socket" ? WebSocketTest : HttpTest;
     var count = parseInt($('#count').val());
     if (!count) {
       return alert('You must specify the number of concurrent requests in count.');
     }
     new driver(count, new Reporter($('#results'))).perform();
-    e.preventDefault();
   });
 });
