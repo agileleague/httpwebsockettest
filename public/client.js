@@ -14,7 +14,7 @@ $(function () {
       throw new Error("This test has already been run");
     }
     this._setupConnection();
-    that = this;
+    var that = this;
     this._connection.onopen = function () {
       that.startTime = new Date();
       for (var i = 0; i < that.count; i++) {
@@ -63,10 +63,11 @@ $(function () {
     var startTime = test.startTime, 
       endTime = test.endTime,
       reports = [];
+
+    reports.push(this._formatReport("Total time", startTime, endTime));
     for(var i = 0; i < test.count; i++) {
       reports.push(this._formatReport(test.sentRequests[i], test.sentRequests[i], test.receivedRequests[i]));
     }
-    reports.push(this._formatReport("Total time", startTime, endTime));
     this._el.html(reports.join("<br>"));
   }
   Reporter.prototype._formatReport = function (desc, startTime, endTime) {
@@ -87,6 +88,9 @@ $(function () {
     this._run = false;
   };
   HttpTest.prototype.perform = function () {
+    if (this._run) {
+      throw new Error("This test has already been run");
+    }
     this._run = true;
     this.startTime = new Date();
     for (var i = 0; i < this.count; i++) {
@@ -117,20 +121,12 @@ $(function () {
     this._reporter.report(this);
   }
 
-  var makeAjaxRequest = function () {
-    new HttpTest(1, new Reporter($('#report-xhr'))).perform();
-  }
-  var makeMultiAjaxRequest = function () {
-    new HttpTest(1000, new Reporter($('#report-multi-xhr'))).perform();
-  }
-  var makeWebSocketRequest = function () {
-    new WebSocketTest(1, new Reporter($('#report-ws'))).perform();
-  };
-  var makeMultiWebSocketRequest = function () {
-    new WebSocketTest(1000, new Reporter($('#report-multi-ws'))).perform();
-  };
-  $('#time-xhr').click(makeAjaxRequest);
-  $('#time-multi-xhr').click(makeMultiAjaxRequest);
-  $('#time-ws').click(makeWebSocketRequest);
-  $('#time-multi-ws').click(makeMultiWebSocketRequest);
+  $('#run-test').click(function () {
+    var driver = $('#test-type').val() == "Web Socket" ? WebSocketTest : HttpTest;
+    var count = parseInt($('#count').val());
+    if (!count) {
+      return alert('You must specify the number of concurrent requests in count.');
+    }
+    new driver(count, new Reporter($('#results'))).perform();
+  });
 });

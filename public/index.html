@@ -3,15 +3,20 @@
   <head>
   </head>
   <body>
-    <h1>Speed test between XHR and WebSockets</h1>
-    <a id="time-xhr" href="#">Time XHR</a>
-    <div id="report-xhr"></div>
-    <a id="time-multi-xhr" href="#">Time Multi XHR</a>
-    <div id="report-multi-xhr"></div>
-    <a id="time-ws" href="#">Time WS</a>
-    <div id="report-ws"></div>
-    <a id="time-multi-ws" href="#">Time Multi WS</a>
-    <div id="report-multi-ws"></div>
+    <h1>HTTP and WebSockets Speed Tester</h1>
+    <div id="test-panel">
+      <label> Test Type
+        <select id="test-type">
+          <option>HTTP</option>
+          <option>Web Socket</option>
+        </select>
+      </label>
+      <label> Count
+        <input id="count" type="text"></input>
+      </label>
+      <button id="run-test" type="button">Run test</button>
+    </div>
+    <div id="results"></div>
     <script src="./jquery-1.11.1.min.js"></script>
     <script src="./client.js"></script>
   </body>
