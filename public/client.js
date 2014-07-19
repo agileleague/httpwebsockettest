@@ -1,4 +1,10 @@
 $(function () {
+  var debugging = window.location.hash == "#debug";
+  function debug(thing) {
+    if (debugging) {
+      console.log(thing);
+    }
+  }
   var runningTest;
 
   var WebSocketTest = function (count, reporter) {
@@ -18,6 +24,8 @@ $(function () {
     this._setupConnection();
     var that = this;
     this._connection.onopen = function () {
+      debug("opened connection");
+      debug("start test");
       that.startTime = new Date();
       for (var i = 0; i < that.count; i++) {
         that._fireRequest(i);
@@ -33,15 +41,16 @@ $(function () {
       var id = JSON.parse(e.data)['id'];
       that.receivedRequests[id] = end;
       that._replies++;
+      debug("received message -- replies: " + that._replies);
       if (that._replies == that.count) {
         that._close();
       }
     };
     this._connection.onerror = function (e) {
-      console.log("Websocket error: " + e);
+      debug("Websocket error: " + e);
     };
     this._connection.onclose = function () {
-      console.log("closing");
+      debug("closing");
     }
   }
   WebSocketTest.prototype._closeConnection = function () {
@@ -57,6 +66,7 @@ $(function () {
     this._closeConnection();
     this._reporter.report(this);
     runningTest = null;
+    debug("closed test");
   }
 
   var Reporter = function Reporter(el) {
@@ -96,6 +106,7 @@ $(function () {
     }
     this._run = true;
     this.startTime = new Date();
+    debug("start test");
     for (var i = 0; i < this.count; i++) {
       this._fireRequest(i);
     }
@@ -123,6 +134,7 @@ $(function () {
     this.endTime = new Date();
     this._reporter.report(this);
     runningTest = null;
+    debug("closed test");
   }
 
   $('#test-panel').submit(function (e) {
