@@ -1,3 +1,5 @@
+"use strict";
+
 var http = require('http');
 var fs = require('fs');
 var express = require('express');
@@ -11,22 +13,31 @@ var buildResponse = function (properties) {
   return JSON.stringify(properties);
 }
 
+var bufferResponse = function (responder, delay) {
+  if (delay) {
+    setTimeout(responder, 1000);
+  } else {
+    responder();
+  }
+};
+
 var app = express();
 app.use(express.static("./public"));
-app.use(function (req, res) {
-  if (req.url === "/xhr") {
+app.use(app.router);
+app.get('/xhr', function (req, res) {
+  bufferResponse(function () {
     res.writeHead(200, {'Content-Type': 'application/json'});
     res.end(buildResponse());
-  } else {
-    res.writeHead(404);
-    res.end("");
-  }
+  }, req.query.delay == '1');
 });
 var server = http.createServer(app).listen(port);
 
 var wss = new WebSocketServer({server: server});
 wss.on('connection', function(ws) {
   ws.on('message', function(message) {
-    ws.send(buildResponse({id: message}));
+    message = JSON.parse(message);
+    bufferResponse(function () {
+      ws.send(buildResponse({id: message.id}));
+    }, message.delay == '1');
   });
 });

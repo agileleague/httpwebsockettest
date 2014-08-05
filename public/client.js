@@ -7,8 +7,9 @@ $(function () {
   }
   var runningTest;
 
-  var WebSocketTest = function (count, reporter) {
+  var WebSocketTest = function (count, delay, reporter) {
     this.count = count;
+    this.delay = delay;
     this._reporter = reporter;
     this.sentRequests = {};
     this.receivedRequests = {};
@@ -58,7 +59,7 @@ $(function () {
   }
   WebSocketTest.prototype._fireRequest = function (id) {
     var start = new Date();
-    this._connection.send(id);
+    this._connection.send(JSON.stringify({id: id, delay: this.delay}));
     this.sentRequests[id] = start;
   }
   WebSocketTest.prototype._close = function () {
@@ -92,8 +93,9 @@ $(function () {
   }
 
 
-  var HttpTest = function HttpRequest(count, reporter) {
+  var HttpTest = function HttpRequest(count, delay, reporter) {
     this.count = count;
+    this.delay = delay;
     this._reporter = reporter;
     this.sentRequests = {};
     this.receivedRequests = {};
@@ -120,7 +122,7 @@ $(function () {
         that._handleResponse(id);
       }
     };
-    xhr.open('GET', "http://" + window.location.host + '/xhr');
+    xhr.open('GET', "http://" + window.location.host + '/xhr?delay=' + (this.delay ? '1' : '0'));
     xhr.send();
   }
   HttpTest.prototype._handleResponse = function (id) {
@@ -144,10 +146,11 @@ $(function () {
     }
     var driver = $('#test-type').val() == "Web Socket" ? WebSocketTest : HttpTest;
     var count = parseInt($('#count').val());
+    var delay = $('#delay').is(':checked');
     if (!count) {
       return alert('You must specify the number of concurrent requests in count.');
     }
-    var test = new driver(count, new Reporter($('#results')));
+    var test = new driver(count, delay, new Reporter($('#results')));
     test.perform();
     runningTest = test;
   });
