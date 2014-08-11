@@ -35,10 +35,11 @@ $(function () {
   }
   WebSocketTest.prototype._setupConnection = function () {
     this._run = true;
-    this._connection = new WebSocket('ws://' + window.location.host);
+    this._connection = new WebSocket("ws://" + window.location.host + "/ws");
     var that = this;
     this._connection.onmessage = function (e) {
       var end = new Date();
+      debug(e.data);
       var id = JSON.parse(e.data)['id'];
       that.receivedRequests[id] = end;
       that._replies++;
