@@ -1,7 +1,6 @@
 "use strict";
 
 var http = require('http');
-var fs = require('fs');
 var express = require('express');
 var WebSocketServer = require('ws').Server;
 
@@ -11,7 +10,7 @@ var buildResponse = function (properties) {
   properties = properties || {};
   properties.now = new Date();
   return JSON.stringify(properties);
-}
+};
 
 var bufferResponse = function (responder, delay) {
   if (delay) {
@@ -32,12 +31,14 @@ app.get('/xhr', function (req, res) {
 });
 var server = http.createServer(app).listen(port);
 
-var wss = new WebSocketServer({server: server});
-wss.on('connection', function(ws) {
-  ws.on('message', function(message) {
+var wss = new WebSocketServer({server: server, path: "/ws"});
+wss.on('connection', function(socket) {
+  socket.on('message', function(message) {
     message = JSON.parse(message);
     bufferResponse(function () {
-      ws.send(buildResponse({id: message.id}));
+      socket.send(buildResponse({id: message.id}));
     }, message.delay == '1');
   });
 });
+
+console.log("listening on " + port);
