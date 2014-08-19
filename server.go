@@ -10,39 +10,31 @@ import (
   "os"
 )
 
+func main() {
+  r := mux.NewRouter()
+  r.HandleFunc("/xhr", handleXHR)
+  r.HandleFunc("/ws", handleWS)
+  r.PathPrefix("/").Handler(
+    http.FileServer(http.Dir("./public/")),
+  )
+  port := os.Getenv("PORT")
+  if port == "" {
+    port = "8080"
+  }
+  fmt.Printf("listening on %s\n", port)
+  http.ListenAndServe(":" + port, r)
+}
+
+func handleXHR(w http.ResponseWriter, r *http.Request) {
+  if r.FormValue("delay") == "1" {
+    time.Sleep(100 * time.Millisecond)
+  }
+  response, _ := json.Marshal(WebResponse{time.Now()})
+  w.Write(response)
+}
+
 type WebResponse struct {
   Now time.Time `json:"now"`
-}
-
-func (this *WebResponse) toJson () []byte  {
-  b, _ := json.Marshal(this)
-  return b
-}
-
-func handleXhr(w http.ResponseWriter, r *http.Request) {
-  if r.FormValue("delay") == "1" {
-    time.Sleep(time.Second)
-  }
-  response := WebResponse{time.Now()}
-  w.Write(response.toJson())
-}
-
-type WebServiceMessage struct {
-  Id int `json:id`
-  Delay bool `json:delay`
-}
-
-func (this *WebServiceMessage) respondToMessage(writes chan WSResponse) {
-  if this.Delay {
-    time.Sleep(time.Second);
-  }
-  response := WSResponse{time.Now(), this.Id}
-  writes <- response
-}
-
-type WSResponse struct {
-  Now time.Time `json:"now"`
-  Id int `json:"id"`
 }
 
 var upgrader = websocket.Upgrader{
@@ -50,43 +42,49 @@ var upgrader = websocket.Upgrader{
   WriteBufferSize: 1024,
 }
 
-func handlerWS(w http.ResponseWriter, r *http.Request) {
+func handleWS(w http.ResponseWriter, r *http.Request) {
   conn, err := upgrader.Upgrade(w, r, nil)
   if err != nil {
-      return
+    return
   }
   writes := make(chan WSResponse)
-  go listenWrites(conn, writes)
+  go respondWS(conn, writes)
   for {
-    message := WebServiceMessage{}
+    message := WSRequest{}
     err := conn.ReadJSON(&message)
     if err != nil {
       close(writes)
       return
     }
-    go message.respondToMessage(writes)
+    go message.respond(writes)
   }
 }
 
-func listenWrites(conn *websocket.Conn, writes chan WSResponse) {
-  for {
-    content, more := <-writes
-    conn.WriteJSON(content)
-    if !more {
-      return
+func respondWS(conn *websocket.Conn,
+  writes chan WSResponse) {
+    for {
+      content, more := <-writes
+      conn.WriteJSON(content)
+      if !more {
+        return
+      }
     }
-  }
 }
 
-func main() {
-  port := os.Getenv("PORT")
-  if port == "" {
-    port = "8080"
-  }
-  r := mux.NewRouter()
-  r.HandleFunc("/xhr", handleXhr)
-  r.HandleFunc("/ws", handlerWS)
-  r.PathPrefix("/").Handler(http.FileServer(http.Dir("./public/")))
-  fmt.Printf("listening on %s\n", port)
-  http.ListenAndServe(":" + port, r)
+type WSRequest struct {
+  Id int `json:id`
+  Delay bool `json:delay`
+}
+func (request *WSRequest) respond(
+  writes chan WSResponse) {
+    if request.Delay {
+      time.Sleep(100 * time.Millisecond)
+    }
+    response := WSResponse{time.Now(), request.Id}
+    writes <- response
+}
+
+type WSResponse struct {
+  Now time.Time `json:"now"`
+  Id int `json:"id"`
 }

@@ -4,22 +4,6 @@ var http = require('http');
 var express = require('express');
 var WebSocketServer = require('ws').Server;
 
-var port = process.env.PORT || 3000;
-
-var buildResponse = function (properties) {
-  properties = properties || {};
-  properties.now = new Date();
-  return JSON.stringify(properties);
-};
-
-var bufferResponse = function (responder, delay) {
-  if (delay) {
-    setTimeout(responder, 1000);
-  } else {
-    responder();
-  }
-};
-
 var app = express();
 app.use(express.static("./public"));
 app.use(app.router);
@@ -29,6 +13,7 @@ app.get('/xhr', function (req, res) {
     res.end(buildResponse());
   }, req.query.delay == '1');
 });
+var port = process.env.PORT || 3000;
 var server = http.createServer(app).listen(port);
 
 var wss = new WebSocketServer({server: server, path: "/ws"});
@@ -42,3 +27,13 @@ wss.on('connection', function(socket) {
 });
 
 console.log("listening on " + port);
+
+var buildResponse = function (properties) {
+  properties = properties || {};
+  properties.now = new Date();
+  return JSON.stringify(properties);
+};
+
+var bufferResponse = function (responder, delay) {
+  delay ? setTimeout(responder, 100) : responder();
+};
